@@ -11,13 +11,24 @@ from flask import render_template, request
 ###
 # Routing for your application.
 ###
-
-
 @app.route('/')
 def index():
     """Render website's initial page and let VueJS take over."""
     return render_template('index.html')
 
+@app.route('/api/upload', methods=['POST'])
+def upload():
+    form=UploadForm()
+    if request.method == "POST" and form.validate_on_submit():
+        description = request.form['description']
+        file = request.files['uploadImage']
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(filefolder, filename))
+        result = [{'message': 'File Upload Successful', 'filename': filename, 'description': description}]
+        return jsonify(result=result)
+    error_collection = form_errors(form)
+    error = [{'errors': error_collection}]
+    return  jsonify(errors=error)
 
 # Here we define a function to collect form errors from Flask-WTF
 # which we can later use
@@ -31,7 +42,6 @@ def form_errors(form):
                     error
                 )
             error_messages.append(message)
-
     return error_messages
 
 
